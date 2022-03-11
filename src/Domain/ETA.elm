@@ -1,6 +1,6 @@
-module Domain.ETA exposing (Itinerary,Milestone, Transport, calculateEta, asString)
+module Domain.ETA exposing (Path(..), Transport, calculateEta)
 
-import Domain.Map exposing (Distance, Location, Map, Road, TravelTime, travelTime)
+import Domain.Map exposing (Location, Map, Road, TravelTime, travelTime)
 import PriorityQueue exposing (PriorityQueue)
 import Set exposing (Set)
 import String exposing (fromFloat)
@@ -15,60 +15,15 @@ type Path
     | City Location TravelTime Path
 
 
-type Event
-    = Depart
-    | Arrive
-
-
-type alias Milestone =
-    { duration : TravelTime
-    , location : Location
-    , event : Event
-    }
-
-
-type alias Itinerary =
-    List Milestone
-
-
 type alias State =
-    { travels : PriorityQueue Journey
+    { journeys : PriorityQueue Journey
     , visited : Set Location
     , map : Map
     }
 
 
-flatten : Path -> List Milestone
-flatten path =
-    case path of
-        Start l ->
-            [ { duration = 0.0, location = l, event = Depart } ]
-
-        City current duration next ->
-            List.append (flatten next)  [ { location = current, duration = duration, event = Arrive } ]
-
-
 type alias Journey =
     ( TravelTime, Path )
-
-
-asString : Itinerary -> String
-asString itinerary =
-    itinerary
-        |> List.map
-            (\{ location, event, duration } ->
-                [ duration |> fromFloat |> String.left 5
-                , location
-                , case event of
-                    Depart ->
-                        "DEPART"
-
-                    Arrive ->
-                        "ARRIVE"
-                ]
-            )
-        |> List.map (String.join "\t")
-        |> String.join "\n"
 
 
 asPriority : Journey -> Int
@@ -90,20 +45,19 @@ exploreOn road ( duration, path ) =
     ( totalDuration, City road.b totalDuration path )
 
 
-calculateEta : Map -> Transport -> Maybe Itinerary
+calculateEta : Map -> Transport -> Maybe Path
 calculateEta map { from, to } =
-    { travels =
+    { journeys =
         PriorityQueue.fromList asPriority [ beginJourneyAt from ]
     , visited = Set.empty
     , map = map
     }
         |> calculateShortestPath to
-        |> Maybe.map flatten
 
 
 calculateShortestPath : Location -> State -> Maybe Path
 calculateShortestPath end state =
-    state.travels
+    state.journeys
         |> PriorityQueue.head
         |> Maybe.andThen
             (\journey ->
@@ -120,7 +74,7 @@ calculateShortestPath end state =
                                 c
                 in
                 if state.visited |> Set.member currentLocation then
-                    calculateShortestPath end { state | travels = state.travels |> PriorityQueue.tail }
+                    calculateShortestPath end { state | journeys = state.journeys |> PriorityQueue.tail }
 
                 else if currentLocation == end then
                     Just path
@@ -131,7 +85,7 @@ calculateShortestPath end state =
                             state.visited
                                 |> Set.insert currentLocation
 
-                        travels =
+                        journeys =
                             Domain.Map.roadsFrom state.map currentLocation
                                 |> List.map
                                     (\road -> exploreOn road journey)
@@ -139,12 +93,12 @@ calculateShortestPath end state =
                                     (\item queue ->
                                         queue |> PriorityQueue.insert item
                                     )
-                                    (state.travels |> PriorityQueue.tail)
+                                    (state.journeys |> PriorityQueue.tail)
                     in
                     calculateShortestPath
                         end
                         { state
-                            | travels = travels
+                            | journeys = journeys
                             , visited = visited
                         }
             )
