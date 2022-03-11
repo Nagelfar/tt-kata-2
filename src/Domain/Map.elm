@@ -13,14 +13,20 @@ type alias Distance =
     Int
 
 
+type alias Speed =
+    Int
+
+
+
+-- type alias Road =
+--     ( Location, Location, Distance, Speed )
+
+
 type alias Road =
-    ( Location, Location, Distance )
-
-
-type alias Connection =
     { a : Location
     , b : Location
     , distance : Distance
+    , speed : Speed
     }
 
 
@@ -29,11 +35,14 @@ type alias Locations =
 
 
 type alias Connections =
-    Dict Location (Set ( Location, Distance ))
+    Dict Location (Set ( Location, Distance, Speed ))
 
 
 type Map
     = Map Locations Connections
+
+toRoad from (to, distance, speed ) =
+    { a = from, b = to, distance = distance, speed = speed }
 
 
 allRoads : Map -> List Road
@@ -42,10 +51,7 @@ allRoads (Map _ connections) =
         asRoad ( from, tos ) =
             tos
                 |> Set.toList
-                |> List.map
-                    (\( to, distance ) ->
-                        ( from, to, distance )
-                    )
+                |> List.map (toRoad from)
     in
     connections
         |> Dict.toList
@@ -58,7 +64,7 @@ roadsFrom (Map _ connections) from =
         |> Dict.get from
         |> Maybe.withDefault Set.empty
         |> Set.toList
-        |> List.map (\( to, d ) -> ( from, to, d ))
+        |> List.map (toRoad from)
 
 
 allLocations : Map -> Set Location
@@ -66,22 +72,28 @@ allLocations (Map locations _) =
     locations
 
 
-decoder : Decoder Connection
+decoder : Decoder Road
 decoder =
-    Decode.map3 Connection
-        (Decode.column 0 Decode.string)
-        (Decode.column 1 Decode.string)
-        (Decode.column 2 Decode.int)
+    Decode.into
+        (\a b distance speed ->
+            { a = a, b = b, distance = distance, speed = speed }
+        )
+        |> Decode.pipeline (Decode.column 0 Decode.string)
+        |> Decode.pipeline (Decode.column 1 Decode.string)
+        |> Decode.pipeline (Decode.column 2 Decode.int)
+        |> Decode.pipeline (Decode.column 3 Decode.int)
 
 
-decoded : String -> Result Decode.Error (List Connection)
+decoded : String -> Result Decode.Error (List Road)
 decoded csv =
     Decode.decodeCsv Decode.FieldNamesFromFirstRow decoder csv
 
-buildConnection a b distance =
-    { a = a, b= b, distance =distance}
 
-buildMap : List Connection -> Map
+buildConnection a b distance =
+    { a = a, b = b, distance = distance, speed = 0 }
+
+
+buildMap : List Road -> Map
 buildMap connections =
     let
         locations =
@@ -89,7 +101,7 @@ buildMap connections =
                 |> List.concatMap (\c -> [ c.a, c.b ])
                 |> Set.fromList
 
-        addRoad from to distance roads =
+        addRoad from to distance speed roads =
             roads
                 |> Dict.update
                     from
@@ -97,18 +109,18 @@ buildMap connections =
                         case value of
                             Just existing ->
                                 existing
-                                    |> Set.insert ( to, distance )
+                                    |> Set.insert ( to, distance, speed )
                                     |> Just
 
                             Nothing ->
-                                Set.singleton ( to, distance )
+                                Set.singleton ( to, distance, speed )
                                     |> Just
                     )
 
         addRoads current roads =
             roads
-                |> addRoad current.a current.b current.distance
-                |> addRoad current.b current.a current.distance
+                |> addRoad current.a current.b current.distance current.speed
+                |> addRoad current.b current.a current.distance current.speed
     in
     Map locations (connections |> List.foldl addRoads Dict.empty)
 

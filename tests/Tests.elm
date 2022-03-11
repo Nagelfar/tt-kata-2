@@ -16,29 +16,29 @@ canParseValidCsv =
             \_ ->
                 let
                     csv =
-                        """A,B,km
-Cogburg,Copperhold,1047"""
+                        """A,B,km,speed
+Cogburg,Copperhold,1047,91"""
                 in
                 csv
                     |> decoded
-                    |> Expect.equal (Ok [ { a = "Cogburg", b = "Copperhold", distance = 1047 } ])
+                    |> Expect.equal (Ok [ { a = "Cogburg", b = "Copperhold", distance = 1047, speed = 91 } ])
         , test "give the right linecount" <|
             \_ ->
                 let
                     csv =
-                        """A,B,km
-Cogburg,Copperhold,1047
-Leverstorm,Irondale,673
-Cogburg,Steamdrift,1269
-Copperhold,Irondale,345
-Copperhold,Leverstorm,569
-Leverstorm,Gizbourne,866
-Rustport,Cogburg,1421
-Rustport,Steamdrift,1947
-Rustport,Gizbourne,1220
-Irondale,Gizbourne,526
-Cogburg,Irondale,1034
-Rustport,Irondale,1302"""
+                        """A,B,km,speed
+Cogburg,Copperhold,1047,91
+Leverstorm,Irondale,629,89
+Cogburg,Steamdrift,1269,89
+Copperhold,Irondale,345,91
+Copperhold,Leverstorm,569,91
+Leverstorm,Gizbourne,866,91
+Rustport,Cogburg,1421,93
+Rustport,Steamdrift,1947,99
+Rustport,Gizbourne,1220,96
+Irondale,Gizbourne,526,97
+Cogburg,Irondale,1034,98
+Rustport,Irondale,1302,95"""
                 in
                 csv
                     |> decoded
@@ -48,10 +48,10 @@ Rustport,Irondale,1302"""
 
 
 mapCsv =
-    """A,B,km
-Cogburg,Copperhold,1047
-Cogburg,Steamdrift,1269
-Copperhold,Irondale,345"""
+    """A,B,km,speed
+Cogburg,Copperhold,1047,91
+Cogburg,Steamdrift,1269,89
+Copperhold,Irondale,345,91"""
 
 
 mapTests : Test
@@ -78,8 +78,8 @@ mapTests =
                     |> Result.map (\map -> Domain.Map.roadsFrom map "Copperhold")
                     |> Expect.equal
                         (Ok
-                            [ ( "Copperhold", "Cogburg", 1047 )
-                            , ( "Copperhold", "Irondale", 345 )
+                            [ { a = "Copperhold", b = "Cogburg", distance = 1047, speed = 91 }
+                            , { a = "Copperhold", b = "Irondale", distance = 345, speed = 91 }
                             ]
                         )
         ]
@@ -129,19 +129,19 @@ acceptenceTests =
             \_ ->
                 let
                     csv =
-                        """A,B,km
-Cogburg,Copperhold,1047
-Leverstorm,Irondale,673
-Cogburg,Steamdrift,1269
-Copperhold,Irondale,345
-Copperhold,Leverstorm,569
-Leverstorm,Gizbourne,866
-Rustport,Cogburg,1421
-Rustport,Steamdrift,1947
-Rustport,Gizbourne,1220
-Irondale,Gizbourne,526
-Cogburg,Irondale,1034
-Rustport,Irondale,1302"""
+                        """A,B,km,speed
+Cogburg,Copperhold,1047,91
+Leverstorm,Irondale,629,89
+Cogburg,Steamdrift,1269,89
+Copperhold,Irondale,345,91
+Copperhold,Leverstorm,569,91
+Leverstorm,Gizbourne,866,91
+Rustport,Cogburg,1421,93
+Rustport,Steamdrift,1947,99
+Rustport,Gizbourne,1220,96
+Irondale,Gizbourne,526,97
+Cogburg,Irondale,1034,98
+Rustport,Irondale,1302,95"""
                 in
                 csv
                     |> parseMap

@@ -46,8 +46,8 @@ beginJourneyAt location =
 
 
 exploreOn : Road -> Journey -> Journey
-exploreOn ( _, to, distance ) ( totalDistance, path ) =
-    ( totalDistance + distance, Milestone to (Just path) )
+exploreOn { b,  distance, speed } ( totalDistance, path ) =
+    ( totalDistance + distance, Milestone b (Just path) )
 
 
 calculatePath : Map -> Transport -> Maybe Itinerary
