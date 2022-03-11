@@ -1,4 +1,11 @@
 {
+  "scripts": {
+    "test": "npx elm-test",
+    "build": "elm make src/Main.elm --optimize --output cli/elm.js"
+  },
+  "directories": {
+    "test": "tests"
+  },
   "devDependencies": {
     "elm-test": "^0.19.1-revision7"
   }

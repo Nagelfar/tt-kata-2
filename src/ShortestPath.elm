@@ -1,8 +1,12 @@
-module ShortestPath exposing (Itinerary, calculatePath)
+module ShortestPath exposing (Itinerary, Transport, calculatePath)
 
 import Map exposing (Distance, Location, Map, Road)
 import PriorityQueue exposing (PriorityQueue)
 import Set exposing (Set)
+
+
+type alias Transport =
+    { from : Location, to : Location }
 
 
 type Path
@@ -46,15 +50,15 @@ exploreOn ( _, to, distance ) ( totalDistance, path ) =
     ( totalDistance + distance, Milestone to (Just path) )
 
 
-calculatePath : Map -> Location -> Location -> Maybe Itinerary
-calculatePath map start end =
+calculatePath : Map -> Transport -> Maybe Itinerary
+calculatePath map { from, to } =
     { travels =
         PriorityQueue.empty Tuple.first
-            |> PriorityQueue.insert (beginJourneyAt start)
+            |> PriorityQueue.insert (beginJourneyAt from)
     , visited = Set.empty
     , map = map
     }
-        |> calculateShortestPath end
+        |> calculateShortestPath to
         |> Maybe.map flatten
         |> Maybe.map List.reverse
 

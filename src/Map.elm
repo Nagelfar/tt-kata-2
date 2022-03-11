@@ -4,7 +4,6 @@ import Csv.Decode as Decode exposing (Decoder)
 import Dict exposing (Dict)
 import Set exposing (Set)
 
-
 type alias Location =
     String
 
