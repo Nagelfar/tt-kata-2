@@ -1,95 +1,88 @@
-module ShortestPath exposing (Journey, Travel(..), calculatePath)
+module ShortestPath exposing (Itinerary, calculatePath)
 
-import Map exposing (Distance, Location, Map, Road)
+import Map exposing (Distance, Location, Map)
 import PriorityQueue exposing (PriorityQueue)
 import Set exposing (Set)
 
 
-
--- type Travel
---     = Start Location
---     | Milestone Location Travel
+type Journey
+    = Milestone Location (Maybe Journey)
 
 
-type Travel
-    = Milestone Location (Maybe Travel)
-
-
-type alias Journey =
+type alias Itinerary =
     List Location
 
 
 type alias State =
-    { travels : PriorityQueue ( Distance, Travel )
-    , visted : Set Location
+    { travels : PriorityQueue ( Distance, Journey )
+    , visited : Set Location
     , map : Map
     }
 
 
-flattenTravel : Travel -> List Location
-flattenTravel (Milestone current next) =
+flatten : Journey -> List Location
+flatten (Milestone current next) =
     current
         :: (case next of
                 Just n ->
-                    flattenTravel n
+                    flatten n
 
                 Nothing ->
                     []
            )
 
 
-calculatePath : Map -> Location -> Location -> Maybe Journey
+calculatePath : Map -> Location -> Location -> Maybe Itinerary
 calculatePath map start end =
-    let
-        state =
-            { travels =
-                PriorityQueue.empty Tuple.first
-                    |> PriorityQueue.insert ( 0, Milestone start Nothing )
-            , visted = Set.empty
-            , map = map
-            }
-    in
-    calculateShortest end state
-        |> Maybe.map flattenTravel
+    { travels =
+        PriorityQueue.empty Tuple.first
+            |> PriorityQueue.insert ( 0, Milestone start Nothing )
+    , visited = Set.empty
+    , map = map
+    }
+        |> calculateShortestPath end
+        |> Maybe.map flatten
         |> Maybe.map List.reverse
 
 
-calculateShortest : Location -> State -> Maybe Travel
-calculateShortest end state =
+calculateShortestPath : Location -> State -> Maybe Journey
+calculateShortestPath end state =
     case state.travels |> PriorityQueue.head of
         Nothing ->
             Nothing
 
-        Just ( distance, Milestone currentMilestone previous ) ->
-            if state.visted |> Set.member currentMilestone then
-                calculateShortest end { state | travels = state.travels |> PriorityQueue.tail }
+        Just ( totalDistance, milestone ) ->
+            let
+                (Milestone currentLocation _ ) = milestone
+            in if state.visited |> Set.member currentLocation then
+                calculateShortestPath end { state | travels = state.travels |> PriorityQueue.tail }
 
-            else if currentMilestone == end then
-                Just (Milestone currentMilestone previous)
+            else if currentLocation == end then
+                Just milestone
 
             else
                 let
                     visited =
-                        state.visted
-                            |> Set.insert currentMilestone
+                        state.visited
+                            |> Set.insert currentLocation
 
                     travels =
-                        Map.roadsFrom state.map currentMilestone
+                        Map.roadsFrom state.map currentLocation
                             |> List.map
-                                (\( _, to, t ) ->
-                                    ( distance + t, Milestone to (Just (Milestone currentMilestone previous)) )
+                                (\( _, to, distance ) ->
+                                    ( totalDistance + distance, Milestone to (Just milestone) )
                                 )
                             |> List.foldl
                                 (\item queue ->
                                     queue |> PriorityQueue.insert item
                                 )
-                                state.travels
+                                (state.travels |> PriorityQueue.tail)
                 in
-                calculateShortest
+                calculateShortestPath
                     end
                     { state
                         | travels = travels
-                        , visted = visited
+                        , visited = visited
                     }
 
 
