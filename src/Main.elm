@@ -3,11 +3,12 @@ module Main exposing (..)
 import Cli.Option as Option
 import Cli.OptionsParser as OptionsParser
 import Cli.Program as Program
-import File
-import Map exposing (..)
-import Ports
-import ShortestPath exposing (..)
 import Csv.Decode as Decode
+import Domain.Map exposing (..)
+import Domain.ShortestPath exposing (..)
+import File
+import Ports
+
 
 type Msg
     = NoOp
@@ -45,9 +46,9 @@ update _ msg model =
 
         File (File.FileLoaded content) ->
             ( model
-            , case content |> Map.parseMap of
+            , case content |> Domain.Map.parseMap of
                 Ok map ->
-                    case ShortestPath.calculatePath map model of
+                    case Domain.ShortestPath.calculatePath map model of
                         Just itinerary ->
                             itinerary
                                 |> String.join ", "
@@ -58,8 +59,8 @@ update _ msg model =
 
                 Err e ->
                     e
-                    |> Decode.errorToString
-                    |> Ports.printAndExitFailure
+                        |> Decode.errorToString
+                        |> Ports.printAndExitFailure
             )
 
 

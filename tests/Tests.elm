@@ -1,11 +1,11 @@
-module MapTests exposing (..)
+module Tests exposing (..)
 
+import Domain.Map exposing (..)
+import Domain.ShortestPath exposing (..)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
 import Html exposing (p)
-import Map exposing (..)
 import Set
-import ShortestPath exposing (..)
 import Test exposing (..)
 
 
@@ -61,21 +61,21 @@ mapTests =
             \_ ->
                 mapCsv
                     |> parseMap
-                    |> Result.map Map.allLocations
+                    |> Result.map Domain.Map.allLocations
                     |> Result.map Set.size
                     |> Expect.equal (Ok 4)
         , test "Road count is correct" <|
             \_ ->
                 mapCsv
                     |> parseMap
-                    |> Result.map Map.allRoads
+                    |> Result.map Domain.Map.allRoads
                     |> Result.map List.length
                     |> Expect.equal (Ok 6)
         , test "Roads from is correct" <|
             \_ ->
                 mapCsv
                     |> parseMap
-                    |> Result.map (\map -> Map.roadsFrom map "Copperhold")
+                    |> Result.map (\map -> Domain.Map.roadsFrom map "Copperhold")
                     |> Expect.equal
                         (Ok
                             [ ( "Copperhold", "Cogburg", 1047 )
@@ -86,14 +86,14 @@ mapTests =
 
 
 sampleMap =
-    [ Map.buildConnection "a" "b" 1
-    , Map.buildConnection "b" "c" 1
-    , Map.buildConnection "c" "e" 1
-    , Map.buildConnection "b" "e" 1
-    , Map.buildConnection "b" "f" 1000
-    , Map.buildConnection "c" "f" 1
+    [ Domain.Map.buildConnection "a" "b" 1
+    , Domain.Map.buildConnection "b" "c" 1
+    , Domain.Map.buildConnection "c" "e" 1
+    , Domain.Map.buildConnection "b" "e" 1
+    , Domain.Map.buildConnection "b" "f" 1000
+    , Domain.Map.buildConnection "c" "f" 1
     ]
-        |> Map.buildMap
+        |> Domain.Map.buildMap
 
 
 shortestPathTests : Test
@@ -101,22 +101,22 @@ shortestPathTests =
     describe "Can calculate shortest Path"
         [ test "With direct connection" <|
             \_ ->
-                ShortestPath.calculatePath sampleMap "a" "b"
+                Domain.ShortestPath.calculatePath sampleMap "a" "b"
                     |> Expect.equal
                         (Just [ "a", "b" ])
         , test "With one hop" <|
             \_ ->
-                ShortestPath.calculatePath sampleMap "a" "c"
+                Domain.ShortestPath.calculatePath sampleMap "a" "c"
                     |> Expect.equal
                         (Just [ "a", "b", "c" ])
         , test "With two possibilities" <|
             \_ ->
-                ShortestPath.calculatePath sampleMap "a" "e"
+                Domain.ShortestPath.calculatePath sampleMap "a" "e"
                     |> Expect.equal
                         (Just [ "a", "b", "e" ])
         , test "With two possibilities where the one with more milestones is cheaper" <|
             \_ ->
-                ShortestPath.calculatePath sampleMap "a" "f"
+                Domain.ShortestPath.calculatePath sampleMap "a" "f"
                     |> Expect.equal
                         (Just [ "a", "b", "c", "f" ])
         ]
@@ -145,7 +145,7 @@ Rustport,Irondale,1302"""
                 in
                 csv
                     |> parseMap
-                    |> Result.map (\m -> ShortestPath.calculatePath m "Steamdrift" "Leverstorm")
+                    |> Result.map (\m -> Domain.ShortestPath.calculatePath m "Steamdrift" "Leverstorm")
                     |> Expect.equal
                         (Ok
                             (Just

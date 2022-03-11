@@ -1,4 +1,4 @@
-module Map exposing (Distance, Location, Map, Road, allLocations, allRoads, decoded, parseMap, roadsFrom, buildMap, buildConnection)
+module Domain.Map exposing (Distance, Location, Map, Road, allLocations, allRoads, decoded, parseMap, roadsFrom, buildMap, buildConnection)
 
 import Csv.Decode as Decode exposing (Decoder)
 import Dict exposing (Dict)

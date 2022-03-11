@@ -1,6 +1,6 @@
-module ShortestPath exposing (Itinerary, Transport, calculatePath)
+module Domain.ShortestPath exposing (Itinerary, Transport, calculatePath)
 
-import Map exposing (Distance, Location, Map, Road)
+import Domain.Map exposing (Distance, Location, Map, Road)
 import PriorityQueue exposing (PriorityQueue)
 import Set exposing (Set)
 
@@ -89,7 +89,7 @@ calculateShortestPath end state =
                                 |> Set.insert currentLocation
 
                         travels =
-                            Map.roadsFrom state.map currentLocation
+                            Domain.Map.roadsFrom state.map currentLocation
                                 |> List.map
                                     (\road -> exploreOn road journey)
                                 |> List.foldl
