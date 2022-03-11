@@ -1,8 +1,9 @@
-module Domain.Map exposing (Distance, Location, Map, Road, allLocations, allRoads, decoded, parseMap, roadsFrom, buildMap, buildConnection)
+module Domain.Map exposing (Distance, Location, Map, Road, allLocations, allRoads, buildConnection, buildMap, decoded, parseMap, roadsFrom)
 
 import Csv.Decode as Decode exposing (Decoder)
 import Dict exposing (Dict)
 import Set exposing (Set)
+
 
 type alias Location =
     String

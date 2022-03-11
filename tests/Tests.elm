@@ -101,22 +101,22 @@ shortestPathTests =
     describe "Can calculate shortest Path"
         [ test "With direct connection" <|
             \_ ->
-                Domain.ShortestPath.calculatePath sampleMap "a" "b"
+                Domain.ShortestPath.calculatePath sampleMap { from = "a", to = "b" }
                     |> Expect.equal
                         (Just [ "a", "b" ])
         , test "With one hop" <|
             \_ ->
-                Domain.ShortestPath.calculatePath sampleMap "a" "c"
+                Domain.ShortestPath.calculatePath sampleMap { from = "a", to = "c" }
                     |> Expect.equal
                         (Just [ "a", "b", "c" ])
         , test "With two possibilities" <|
             \_ ->
-                Domain.ShortestPath.calculatePath sampleMap "a" "e"
+                Domain.ShortestPath.calculatePath sampleMap { from = "a", to = "e" }
                     |> Expect.equal
                         (Just [ "a", "b", "e" ])
         , test "With two possibilities where the one with more milestones is cheaper" <|
             \_ ->
-                Domain.ShortestPath.calculatePath sampleMap "a" "f"
+                Domain.ShortestPath.calculatePath sampleMap { from = "a", to = "f" }
                     |> Expect.equal
                         (Just [ "a", "b", "c", "f" ])
         ]
@@ -145,7 +145,7 @@ Rustport,Irondale,1302"""
                 in
                 csv
                     |> parseMap
-                    |> Result.map (\m -> Domain.ShortestPath.calculatePath m "Steamdrift" "Leverstorm")
+                    |> Result.map (\m -> Domain.ShortestPath.calculatePath m { from = "Steamdrift", to = "Leverstorm" })
                     |> Expect.equal
                         (Ok
                             (Just
