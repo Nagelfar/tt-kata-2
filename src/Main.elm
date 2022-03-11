@@ -4,8 +4,8 @@ import Cli.Option as Option
 import Cli.OptionsParser as OptionsParser
 import Cli.Program as Program
 import Csv.Decode as Decode
-import Domain.Map exposing (..)
 import Domain.ETA exposing (..)
+import Domain.Map exposing (..)
 import File
 import Ports
 
@@ -51,7 +51,7 @@ update _ msg model =
                     case Domain.ETA.calculateEta map model of
                         Just itinerary ->
                             itinerary
-                                |> String.join ", "
+                                |> asString
                                 |> Ports.printAndExitSuccess
 
                         Nothing ->

@@ -1,7 +1,7 @@
 module Tests exposing (..)
 
-import Domain.Map exposing (..)
 import Domain.ETA exposing (..)
+import Domain.Map exposing (..)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
 import Html exposing (p)
@@ -98,32 +98,52 @@ sampleMap =
         |> Domain.Map.buildMap
 
 
+mapToLocationOnly : Milestone -> Location
+mapToLocationOnly { location } =
+    location
+
+mapToDurationOnly : Milestone -> TravelTime
+mapToDurationOnly { duration } =
+    duration
+
+
 shortestPathTests : Test
 shortestPathTests =
     describe "Can calculate shortest Path"
         [ test "With direct connection" <|
             \_ ->
                 Domain.ETA.calculateEta sampleMap { from = "a", to = "b" }
+                    |> Maybe.map (List.map mapToLocationOnly)
                     |> Expect.equal
                         (Just [ "a", "b" ])
         , test "With one hop" <|
             \_ ->
                 Domain.ETA.calculateEta sampleMap { from = "a", to = "c" }
+                    |> Maybe.map (List.map mapToLocationOnly)
                     |> Expect.equal
                         (Just [ "a", "b", "c" ])
+        , test "With one hop the duration should be correct" <|
+            \_ ->
+                Domain.ETA.calculateEta sampleMap { from = "a", to = "c" }
+                    |> Maybe.map (List.map mapToDurationOnly)
+                    |> Expect.equal
+                        (Just [ 0.0, 1.0, 2.0 ])
         , test "With two possibilities" <|
             \_ ->
                 Domain.ETA.calculateEta sampleMap { from = "a", to = "e" }
+                    |> Maybe.map (List.map mapToLocationOnly)
                     |> Expect.equal
                         (Just [ "a", "b", "e" ])
         , test "With two possibilities where the one with more milestones is cheaper" <|
             \_ ->
                 Domain.ETA.calculateEta sampleMap { from = "a", to = "f" }
+                    |> Maybe.map (List.map mapToLocationOnly)
                     |> Expect.equal
                         (Just [ "a", "b", "c", "f" ])
         , test "With two possibilities where the one with more distance is still faster" <|
             \_ ->
                 Domain.ETA.calculateEta sampleMap { from = "a", to = "g" }
+                    |> Maybe.map (List.map mapToLocationOnly)
                     |> Expect.equal
                         (Just [ "a", "b", "g" ])
         ]
@@ -153,10 +173,11 @@ Rustport,Irondale,1302,95"""
                 csv
                     |> parseMap
                     |> Result.map (\m -> Domain.ETA.calculateEta m { from = "Steamdrift", to = "Leverstorm" })
+                    |> Result.map (Maybe.map (List.map mapToLocationOnly))
                     |> Expect.equal
                         (Ok
                             (Just
-                                [ "Steamdrift", "Cogburg", "Copperhold", "Leverstorm" ]
+                                [ "Steamdrift", "Cogburg", "Irondale", "Leverstorm" ]
                             )
                         )
         ]
