@@ -1,4 +1,4 @@
-module Domain.Map exposing (Distance, Location, Map, Road, allLocations, allRoads, buildConnection, buildMap, decoded, parseMap, roadsFrom)
+module Domain.Map exposing (Distance, Location, Map, Road, TravelTime, allLocations, allRoads, buildConnection, buildMap, decoded, parseMap, roadsFrom, travelTime)
 
 import Csv.Decode as Decode exposing (Decoder)
 import Dict exposing (Dict)
@@ -17,9 +17,8 @@ type alias Speed =
     Int
 
 
-
--- type alias Road =
---     ( Location, Location, Distance, Speed )
+type alias TravelTime =
+    Float
 
 
 type alias Road =
@@ -34,14 +33,15 @@ type alias Locations =
     Set Location
 
 
-type alias Connections =
+type alias Roads =
     Dict Location (Set ( Location, Distance, Speed ))
 
 
 type Map
-    = Map Locations Connections
+    = Map Locations Roads
 
-toRoad from (to, distance, speed ) =
+
+toRoad from ( to, distance, speed ) =
     { a = from, b = to, distance = distance, speed = speed }
 
 
@@ -72,6 +72,11 @@ allLocations (Map locations _) =
     locations
 
 
+travelTime : Road -> TravelTime
+travelTime { distance, speed } =
+    (toFloat distance) / (toFloat speed)
+
+
 decoder : Decoder Road
 decoder =
     Decode.into
@@ -89,8 +94,8 @@ decoded csv =
     Decode.decodeCsv Decode.FieldNamesFromFirstRow decoder csv
 
 
-buildConnection a b distance =
-    { a = a, b = b, distance = distance, speed = 0 }
+buildConnection a b distance speed =
+    { a = a, b = b, distance = distance, speed = speed }
 
 
 buildMap : List Road -> Map

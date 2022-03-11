@@ -1,7 +1,7 @@
 module Tests exposing (..)
 
 import Domain.Map exposing (..)
-import Domain.ShortestPath exposing (..)
+import Domain.ETA exposing (..)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
 import Html exposing (p)
@@ -86,12 +86,14 @@ mapTests =
 
 
 sampleMap =
-    [ Domain.Map.buildConnection "a" "b" 1
-    , Domain.Map.buildConnection "b" "c" 1
-    , Domain.Map.buildConnection "c" "e" 1
-    , Domain.Map.buildConnection "b" "e" 1
-    , Domain.Map.buildConnection "b" "f" 1000
-    , Domain.Map.buildConnection "c" "f" 1
+    [ Domain.Map.buildConnection "a" "b" 1 1
+    , Domain.Map.buildConnection "b" "c" 1 1
+    , Domain.Map.buildConnection "c" "e" 1 1
+    , Domain.Map.buildConnection "b" "e" 1 1
+    , Domain.Map.buildConnection "b" "f" 1000 1
+    , Domain.Map.buildConnection "c" "f" 1 1
+    , Domain.Map.buildConnection "b" "g" 6 5
+    , Domain.Map.buildConnection "c" "g" 5 1
     ]
         |> Domain.Map.buildMap
 
@@ -101,24 +103,29 @@ shortestPathTests =
     describe "Can calculate shortest Path"
         [ test "With direct connection" <|
             \_ ->
-                Domain.ShortestPath.calculatePath sampleMap { from = "a", to = "b" }
+                Domain.ETA.calculateEta sampleMap { from = "a", to = "b" }
                     |> Expect.equal
                         (Just [ "a", "b" ])
         , test "With one hop" <|
             \_ ->
-                Domain.ShortestPath.calculatePath sampleMap { from = "a", to = "c" }
+                Domain.ETA.calculateEta sampleMap { from = "a", to = "c" }
                     |> Expect.equal
                         (Just [ "a", "b", "c" ])
         , test "With two possibilities" <|
             \_ ->
-                Domain.ShortestPath.calculatePath sampleMap { from = "a", to = "e" }
+                Domain.ETA.calculateEta sampleMap { from = "a", to = "e" }
                     |> Expect.equal
                         (Just [ "a", "b", "e" ])
         , test "With two possibilities where the one with more milestones is cheaper" <|
             \_ ->
-                Domain.ShortestPath.calculatePath sampleMap { from = "a", to = "f" }
+                Domain.ETA.calculateEta sampleMap { from = "a", to = "f" }
                     |> Expect.equal
                         (Just [ "a", "b", "c", "f" ])
+        , test "With two possibilities where the one with more distance is still faster" <|
+            \_ ->
+                Domain.ETA.calculateEta sampleMap { from = "a", to = "g" }
+                    |> Expect.equal
+                        (Just [ "a", "b", "g" ])
         ]
 
 
@@ -145,7 +152,7 @@ Rustport,Irondale,1302,95"""
                 in
                 csv
                     |> parseMap
-                    |> Result.map (\m -> Domain.ShortestPath.calculatePath m { from = "Steamdrift", to = "Leverstorm" })
+                    |> Result.map (\m -> Domain.ETA.calculateEta m { from = "Steamdrift", to = "Leverstorm" })
                     |> Expect.equal
                         (Ok
                             (Just

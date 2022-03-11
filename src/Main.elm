@@ -5,7 +5,7 @@ import Cli.OptionsParser as OptionsParser
 import Cli.Program as Program
 import Csv.Decode as Decode
 import Domain.Map exposing (..)
-import Domain.ShortestPath exposing (..)
+import Domain.ETA exposing (..)
 import File
 import Ports
 
@@ -48,7 +48,7 @@ update _ msg model =
             ( model
             , case content |> Domain.Map.parseMap of
                 Ok map ->
-                    case Domain.ShortestPath.calculatePath map model of
+                    case Domain.ETA.calculateEta map model of
                         Just itinerary ->
                             itinerary
                                 |> String.join ", "
