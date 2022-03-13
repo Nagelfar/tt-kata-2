@@ -79,10 +79,7 @@ travelTime { distance, speed } =
 
 decoder : Decoder Road
 decoder =
-    Decode.into
-        (\a b distance speed ->
-            { a = a, b = b, distance = distance, speed = speed }
-        )
+    Decode.into buildConnection
         |> Decode.pipeline (Decode.column 0 Decode.string)
         |> Decode.pipeline (Decode.column 1 Decode.string)
         |> Decode.pipeline (Decode.column 2 Decode.int)

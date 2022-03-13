@@ -1,11 +1,10 @@
-module Tests exposing (..)
+module RouteTests exposing (..)
 
 import Domain.ETA exposing (..)
 import Domain.Itinerary exposing (..)
 import Domain.Map exposing (..)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import Html exposing (p)
 import Set
 import Test exposing (..)
 

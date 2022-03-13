@@ -1,7 +1,7 @@
 {
   "scripts": {
     "test": "npx elm-test",
-    "build": "elm make src/Main.elm --optimize --output cli/elm.js"
+    "build": "elm make src/Route.elm --optimize --output cli/elm.js"
   },
   "directories": {
     "test": "tests"
